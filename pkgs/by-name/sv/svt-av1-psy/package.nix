@@ -2,9 +2,11 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  pkg-config,
   cmake,
   nasm,
   libdovi,
+  libhdr10plus-rs
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -23,16 +25,18 @@ stdenv.mkDerivation (finalAttrs: {
   cmakeFlags = lib.mapAttrsToList lib.cmakeFeature {
     LIBDOVI_FOUND = lib.boolToString true;
     # enable when libhdr10plus is available
-    # LIBHDR10PLUS_RS_FOUND = lib.boolToString true;
+    LIBHDR10PLUS_RS_FOUND = lib.boolToString true;
   };
 
   nativeBuildInputs = [
     cmake
     nasm
+    pkg-config
   ];
 
   buildInputs = [
     libdovi
+    libhdr10plus-rs
   ];
 
   meta = {
