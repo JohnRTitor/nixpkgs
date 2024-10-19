@@ -1,12 +1,18 @@
 { lib
-, python3
+, python3Packages
 , fetchPypi
 , glibcLocales
 }:
-
-with python3.pkgs;
-
-buildPythonApplication rec {
+let
+  paramiko = python3Packages.paramiko.overrideAttrs (finalAttrs: prevAttrs: {
+    version = "3.4.1";
+    src = fetchPypi {
+      inherit (prevAttrs) pname;
+      inherit (finalAttrs) version;
+      hash = "sha256-ixUwKHCvf2ZS8uA4l1wdKXPwYEbLXX1lNVZos+y+zgw=";
+    };
+  });
+in python3Packages.buildPythonApplication rec {
   pname = "mycli";
   version = "1.27.2";
 
@@ -15,12 +21,11 @@ buildPythonApplication rec {
     hash = "sha256-0R2k5hRkAJbqgGZEPXWUb48oFxTKMKiQZckf3F+VC3I=";
   };
 
-  propagatedBuildInputs = [
+  propagatedBuildInputs = (with python3Packages; [
     cli-helpers
     click
     configobj
     importlib-resources
-    paramiko
     prompt-toolkit
     pyaes
     pycrypto
@@ -29,26 +34,18 @@ buildPythonApplication rec {
     pyperclip
     sqlglot
     sqlparse
-  ];
+  ]) ++ [ paramiko ];
 
-  nativeCheckInputs = [ pytestCheckHook glibcLocales ];
+  nativeCheckInputs = [ python3Packages.pytestCheckHook glibcLocales ];
 
   preCheck = ''
     export HOME=.
     export LC_ALL="en_US.UTF-8"
   '';
 
-  # fails at checkphase due to the below test paths
-  # disabling it specifically does not work, so we disable checking altogether
-  doCheck = false;
   disabledTestPaths = [
     "mycli/packages/paramiko_stub/__init__.py"
   ];
-
-  postPatch = ''
-    substituteInPlace setup.py \
-      --replace "cryptography == 36.0.2" "cryptography"
-  '';
 
   meta = with lib; {
     inherit version;
