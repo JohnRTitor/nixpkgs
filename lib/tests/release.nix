@@ -1,5 +1,5 @@
 { # The pkgs used for dependencies for the testing itself
-  # Don't test properties of pkgs.lib, but rather the lib in the parent directory
+  # Don't test properties of pkgs.lib, but rather the lib in the parent directory HELLO
   pkgs ? import ../.. {} // { lib = throw "pkgs.lib accessed, but the lib tests should use nixpkgs' lib path directly!"; },
   nix ? pkgs-nixVersions.stable,
   nixVersions ? [ pkgs-nixVersions.minimum nix pkgs-nixVersions.latest ],
