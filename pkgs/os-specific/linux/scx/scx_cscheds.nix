@@ -88,9 +88,6 @@ llvmPackages.stdenv.mkDerivation (finalAttrs: {
       # systemd unit is implemented in the nixos module
       # upstream systemd files are a hassle to patch
       "systemd" = false;
-      # not for nix
-      "openrc" = false;
-      "libalpm" = false;
     })
     (lib.mapAttrsToList lib.mesonBool {
       # needed libs are already fetched as FOD
