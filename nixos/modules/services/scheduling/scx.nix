@@ -55,7 +55,7 @@ in
         "scx_simple"
         "scx_userland"
       ];
-      default = "scx_rustland";
+      default = "scx_lavd";
       example = "scx_bpfland";
       description = ''
         Which scheduler to use. See [SCX documentation](https://github.com/sched-ext/scx/tree/main/scheds)
