@@ -17,7 +17,6 @@
   xorg,
   zlib,
   makeWrapper,
-  waylandSupport ? false,
 }:
 
 let
@@ -66,7 +65,8 @@ let
       xorg.libxcb
       xorg.libXcursor
       xorg.libXi
-    ] ++ lib.optionals waylandSupport [ wayland ];
+      wayland
+    ];
 
     installPhase =
       ''
@@ -75,11 +75,6 @@ let
         mkdir $out
         cp -r opt usr/* $out
 
-      ''
-      + lib.optionalString waylandSupport ''
-        wrapProgram $out/bin/warp-terminal --set WARP_ENABLE_WAYLAND 1
-      ''
-      + ''
         runHook postInstall
       '';
   });
