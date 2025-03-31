@@ -6,6 +6,8 @@
   undmg,
   autoPatchelfHook,
   alsa-lib,
+  fontconfig,
+  libgbm,
   ncurses5,
   libxxf86vm,
   libxtst,
@@ -20,16 +22,16 @@
 
 let
   pname = "scilab-bin";
-  version = "6.1.1";
+  version = "2025.0.0";
 
   srcs = {
     aarch64-darwin = fetchurl {
-      url = "https://www.utc.fr/~mottelet/scilab/download/${version}/scilab-${version}-accelerate-arm64.dmg";
-      sha256 = "sha256-L4dxD8R8bY5nd+4oDs5Yk0LlNsFykLnAM+oN/O87SRI=";
+      url = "https://www.scilab.org/download/${version}/scilab-${version}-arm64.dmg";
+      hash = "sha256-hQFETzQiguqiVKBuIrce62eYEJ066B1lHN0IejNUaPQ=";
     };
     x86_64-linux = fetchurl {
-      url = "https://www.scilab.org/download/${version}/scilab-${version}.bin.linux-x86_64.tar.gz";
-      sha256 = "sha256-PuGnz2YdAhriavwnuf5Qyy0cnCeRHlWC6dQzfr7bLHk=";
+      url = "https://www.scilab.org/download/${version}/scilab-${version}.bin.x86_64-linux-gnu.tar.xz";
+      hash = "sha256-905HpjpNWnupJ7/fl0Xj7ePDpeMVi02OnEyIeawNdxw=";
     };
   };
   src =
@@ -89,6 +91,8 @@ let
 
     buildInputs = [
       alsa-lib
+      fontconfig
+      libgbm
       ncurses5
       stdenv.cc.cc
       libx11
@@ -118,6 +122,13 @@ let
 
       runHook postInstall
     '';
+
+    # The bundled JRE's AWT libraries load libfontconfig with dlopen() instead
+    # of linking it, so autoPatchelfHook never sees a missing dependency and
+    # adds no RPATH entry for it. Without it the font manager cannot
+    # initialise and Scilab aborts with 'sun.awt.FontConfiguration.head is
+    # null' as soon as it renders anything.
+    appendRunpaths = [ "${lib.getLib fontconfig}/lib" ];
 
     dontCheckForBrokenSymlinks = true;
   };
