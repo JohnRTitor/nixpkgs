@@ -12,21 +12,22 @@
   stdenv,
   testers,
   vulkan-loader,
+  p7zip,
 }:
 
 let
   description = "OpenGL and Vulkan Benchmark and Stress Test";
 
   versions = {
-    "x86_64-linux" = "2.3.0.0";
+    "x86_64-linux" = "2.8.1.1";
     "aarch64-linux" = "2.3.0.0";
     "i686-linux" = "2.0.16";
   };
 
   sources = {
     "x86_64-linux" = {
-      url = "https://gpumagick.com/downloads/files/2024/furmark2/FurMark_${versions.x86_64-linux}_linux64.zip";
-      hash = "sha256-9xwnOo8gh6XlX2uTwvEorXsx9FafaeCyCPPPJLJGeuE=";
+      url = "https://gpumagick.com/downloads/files/2025/fm2/FurMark_${versions.x86_64-linux}_linux64.7z";
+      hash = "sha256-zJDEqtz+W5e9eayX2O1gicLdsoMaN2r/oD2NpL8gs6k=";
     };
     "aarch64-linux" = {
       url = "https://gpumagick.com/downloads/files/2024/furmark2/FurMark_${versions.x86_64-linux}_rpi64.zip";
@@ -44,7 +45,11 @@ stdenv.mkDerivation (finalAttrs: {
     versions.${stdenv.hostPlatform.system}
       or (throw "Furmark is not available on ${stdenv.hostPlatform.system}");
 
-  src = fetchzip sources.${stdenv.hostPlatform.system};
+  src = if (stdenv.hostPlatform.system == "x86_64-linux") then fetchurl sources.${stdenv.hostPlatform.system} else fetchzip sources.${stdenv.hostPlatform.system};
+
+  unpackPhase = lib.optionalString (stdenv.hostPlatform.system == "x86_64-linux") ''
+    ${p7zip}/bin/7z x $src
+  '';
 
   nativeBuildInputs = [
     autoPatchelfHook
@@ -64,7 +69,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp -rp * $out/share/furmark
 
     mkdir -p $out/bin
-    for i in $(find $out/share/furmark -maxdepth 1 -type f -executable); do
+    for i in $(find $out/share/furmark -maxdepth 2 -type f -executable); do
       ln -s "$i" "$out/bin/$(basename "$i")"
     done
 
