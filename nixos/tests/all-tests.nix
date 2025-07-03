@@ -230,7 +230,10 @@ in
   ayatana-indicators = runTest ./ayatana-indicators.nix;
   babeld = runTest ./babeld.nix;
   bazarr = runTest ./bazarr.nix;
-  bcachefs = runTestOn [ "x86_64-linux" "aarch64-linux" ] ./bcachefs.nix;
+  bcachefs = import ./bcachefs {
+    inherit pkgs runTestOn;
+    platforms = [ "x86_64-linux" "aarch64-linux" ];
+  };
   beanstalkd = runTest ./beanstalkd.nix;
   bees = runTest ./bees.nix;
   benchexec = runTest ./benchexec.nix;

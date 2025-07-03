@@ -1,4 +1,6 @@
-{ pkgs, ... }:
+{ pkgs,
+  kernel,
+  ... }:
 {
   name = "bcachefs";
   meta.maintainers = with pkgs.lib.maintainers; [ Madouura ];
@@ -9,6 +11,7 @@
       virtualisation.emptyDiskImages = [ 4096 ];
       networking.hostId = "deadbeef";
       boot.supportedFilesystems = [ "bcachefs" ];
+      boot.kernelPackages = kernel;
       environment.systemPackages = with pkgs; [
         parted
         keyutils
