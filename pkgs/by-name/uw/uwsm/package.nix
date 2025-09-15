@@ -7,6 +7,7 @@
   ninja,
   scdoc,
   pkg-config,
+  fetchpatch,
   nix-update-script,
   bash,
   dmenu,
@@ -37,6 +38,13 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-UP9Ztps5oWl0bdXhSlE4SCxHFprUf74DWygJy6GvO4k=";
   };
 
+  patches = [
+    (fetchpatch {
+      url = "https://github.com/Vladimir-csp/uwsm/pull/171/commits/18777d18098b03df2b5007b020bde6787f906413.patch";
+      hash = "sha256-3Tb59Jr2H7hCiFgwBOdc5OcbupW8SLZkDLtB62t4hzw=";
+    })
+  ];
+
   nativeBuildInputs = [
     makeBinaryWrapper
     meson
@@ -65,23 +73,6 @@ stdenv.mkDerivation (finalAttrs: {
     })
     (lib.mesonOption "python-bin" python.interpreter)
   ];
-
-  postInstall =
-    let
-      wrapperArgs = "--suffix PATH : ${lib.makeBinPath finalAttrs.buildInputs}";
-    in
-    ''
-      wrapProgram $out/bin/uwsm ${wrapperArgs}
-    ''
-    + lib.optionalString uuctlSupport ''
-      wrapProgram $out/bin/uuctl ${wrapperArgs}
-    ''
-    + lib.optionalString uwsmAppSupport ''
-      wrapProgram $out/bin/uwsm-app ${wrapperArgs}
-    ''
-    + lib.optionalString fumonSupport ''
-      wrapProgram $out/bin/fumon ${wrapperArgs}
-    '';
 
   outputs = [
     "out"
