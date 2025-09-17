@@ -21,14 +21,22 @@ stdenv.mkDerivation {
 
    nativeBuildInputs = kernel.moduleBuildDependencies;
 
+   postPatch = ''
+     substituteInPlace ./dkms/Makefile \
+       --replace-fail '/lib/modules/`uname -r`/build' ${kernel.dev}/lib/modules/${kernel.modDirVersion}/build
+   '';
+
+   preBuild = ''
+     cd dkms
+   '';
+
+
    buildFlags = [
      "KERNEL_DIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
    ];
 
    installPhase = ''
-     install -D system76.ko $out/lib/modules/${kernel.modDirVersion}/misc/system76.ko
-     mkdir -p $out/lib/udev/hwdb.d
-     mv lib/udev/hwdb.d/* $out/lib/udev/hwdb.d
+     ls
    '';
 
   meta = {
