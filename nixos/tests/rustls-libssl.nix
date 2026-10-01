@@ -3,9 +3,9 @@ let
   caCert = builtins.readFile ./common/acme/server/ca.cert.pem;
   certPath = ./common/acme/server/acme.test.cert.pem;
   keyPath = ./common/acme/server/acme.test.key.pem;
-  hosts = ''
-    192.168.2.101 acme.test
-  '';
+  hosts = {
+    "192.168.2.101" = [ "acme.test" ];
+  };
 in
 {
   name = "rustls-libssl";
@@ -27,7 +27,7 @@ in
               }
             ];
           };
-          extraHosts = hosts;
+          inherit hosts;
           firewall.allowedTCPPorts = [ 443 ];
         };
 
@@ -74,7 +74,7 @@ in
               }
             ];
           };
-          extraHosts = hosts;
+          inherit hosts;
         };
 
         security.pki.certificates = [ caCert ];
