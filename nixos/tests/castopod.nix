@@ -12,11 +12,7 @@
       virtualisation.diskSize = 512 + 3 * 512;
 
       networking.firewall.allowedTCPPorts = [ 80 ];
-      networking.extraHosts = lib.strings.concatStringsSep "\n" (
-        lib.attrsets.mapAttrsToList (
-          name: _: "127.0.0.1 ${name}"
-        ) nodes.castopod.services.nginx.virtualHosts
-      );
+      networking.hosts."127.0.0.1" = lib.attrNames nodes.castopod.services.nginx.virtualHosts;
 
       services.castopod = {
         enable = true;
@@ -67,11 +63,8 @@
       '';
     in
     {
-      networking.extraHosts = lib.strings.concatStringsSep "\n" (
-        lib.attrsets.mapAttrsToList (
-          name: _: "${getIP nodes.castopod} ${name}"
-        ) nodes.castopod.services.nginx.virtualHosts
-      );
+      networking.hosts."${getIP nodes.castopod}" =
+        lib.attrNames nodes.castopod.services.nginx.virtualHosts;
 
       environment.systemPackages =
         let
