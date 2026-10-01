@@ -58,8 +58,8 @@ let
                   ];
                   ipv6.addresses = lib.mkForce [ ];
                 };
-                extraHosts = lib.concatMapStringsSep "\n" (i: "192.168.1.${toString i} galera_0${toString i}") (
-                  lib.range 1 6
+                hosts = lib.listToAttrs (
+                  map (i: lib.nameValuePair "192.168.1.${toString i}" [ "galera_0${toString i}" ]) (lib.range 1 6)
                 );
               };
               services.mysql = {
