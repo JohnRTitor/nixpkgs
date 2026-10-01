@@ -18,14 +18,16 @@ in
           certs.ca.cert
         ];
 
-        networking.extraHosts = ''
-          127.0.0.5 proxy.test.nix
-          127.0.0.5 noproxy.test.nix
-          127.0.0.3 direct-nossl.test.nix
-          127.0.0.4 unsecure-nossl.test.nix
-          127.0.0.2 direct-noproxy.test.nix
-          127.0.0.1 direct-proxy.test.nix
-        '';
+        networking.hosts = {
+          "127.0.0.5" = [
+            "proxy.test.nix"
+            "noproxy.test.nix"
+          ];
+          "127.0.0.3" = [ "direct-nossl.test.nix" ];
+          "127.0.0.4" = [ "unsecure-nossl.test.nix" ];
+          "127.0.0.2" = [ "direct-noproxy.test.nix" ];
+          "127.0.0.1" = [ "direct-proxy.test.nix" ];
+        };
         services.nginx = {
           enable = true;
           defaultListen = [
