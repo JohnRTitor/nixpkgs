@@ -365,9 +365,10 @@ in
         keyFile = mkDefault key;
         trustedCaFile = mkDefault caCert;
       };
-      networking.extraHosts = mkIf (config.services.etcd.enable) ''
-        127.0.0.1 etcd.${top.addons.dns.clusterDomain} etcd.local
-      '';
+      networking.hosts."127.0.0.1" = mkIf (config.services.etcd.enable) [
+        "etcd.${top.addons.dns.clusterDomain}"
+        "etcd.local"
+      ];
 
       services.flannel = with cfg.certs.flannelClient; {
         kubeconfig = top.lib.mkKubeConfig "flannel" {
