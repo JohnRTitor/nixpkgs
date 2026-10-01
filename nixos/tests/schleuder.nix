@@ -95,9 +95,7 @@ in
         settings.selfmx = true;
       };
 
-      networking.extraHosts = ''
-        127.0.0.1 ${domain}
-      '';
+      networking.hosts."127.0.0.1" = [ "${domain}" ];
 
       # schleuder-cli's config is not quite optimal in several ways:
       # - A fingerprint _must_ be pinned, it doesn't even have an option
