@@ -173,11 +173,11 @@ in
         security.pki.certificateFiles = [
           ca_pem
         ];
-        networking.extraHosts = ''
-          ${nodes.mas1.networking.primaryIPAddress} ${masDomain}
-          ${nodes.dex1.networking.primaryIPAddress} ${dexDomain}
-          ${nodes.hs1.networking.primaryIPAddress} ${synapseDomain}
-        '';
+        networking.hosts = {
+          "${nodes.mas1.networking.primaryIPAddress}" = [ "${masDomain}" ];
+          "${nodes.dex1.networking.primaryIPAddress}" = [ "${dexDomain}" ];
+          "${nodes.hs1.networking.primaryIPAddress}" = [ "${synapseDomain}" ];
+        };
 
         environment.systemPackages = [
           pkgs.matrix-synapse
@@ -264,10 +264,10 @@ in
           ${pkgs.openssl}/bin/openssl genrsa -out /var/lib/matrix-authentication-service/key_rsa_4096 4096
         '';
         security.pki.certificateFiles = [ ca_pem ];
-        networking.extraHosts = ''
-          ${nodes.hs1.networking.primaryIPAddress} ${synapseDomain}
-          ${nodes.dex1.networking.primaryIPAddress} ${dexDomain}
-        '';
+        networking.hosts = {
+          "${nodes.hs1.networking.primaryIPAddress}" = [ "${synapseDomain}" ];
+          "${nodes.dex1.networking.primaryIPAddress}" = [ "${dexDomain}" ];
+        };
         networking.firewall.allowedTCPPorts = [
           8080
           8081
@@ -296,11 +296,11 @@ in
           }
         ];
         security.pki.certificateFiles = [ ca_pem ];
-        networking.extraHosts = ''
-          ${nodes.hs1.networking.primaryIPAddress} ${synapseDomain}
-          ${nodes.mas1.networking.primaryIPAddress} ${masDomain}
-          ${nodes.dex1.networking.primaryIPAddress} ${dexDomain}
-        '';
+        networking.hosts = {
+          "${nodes.hs1.networking.primaryIPAddress}" = [ "${synapseDomain}" ];
+          "${nodes.mas1.networking.primaryIPAddress}" = [ "${masDomain}" ];
+          "${nodes.dex1.networking.primaryIPAddress}" = [ "${dexDomain}" ];
+        };
         networking.firewall.allowedTCPPorts = [ 5556 ];
       };
   };
