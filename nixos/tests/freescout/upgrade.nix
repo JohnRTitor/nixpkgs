@@ -33,9 +33,7 @@ in
   nodes.machine =
     { config, lib, ... }:
     {
-      networking.extraHosts = ''
-        127.0.0.1 ${freescoutDomain}
-      '';
+      networking.hosts."127.0.0.1" = [ "${freescoutDomain}" ];
       virtualisation.memorySize = 1024;
       environment.systemPackages = with pkgs; [
         curl
