@@ -8,9 +8,7 @@
   meta.maintainers = pkgs.pretix.meta.maintainers;
 
   containers.pretix = {
-    networking.extraHosts = ''
-      127.0.0.1 tickets.local
-    '';
+    networking.hosts."127.0.0.1" = [ "tickets.local" ];
 
     services.pretix = {
       enable = true;
