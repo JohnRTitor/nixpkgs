@@ -173,9 +173,7 @@ in
         ...
       }:
       {
-        networking.extraHosts = lib.concatStringsSep "\n" (
-          map (domain: "${nodes.web.networking.primaryIPAddress}  ${domain}") domains
-        );
+        networking.hosts."${nodes.web.networking.primaryIPAddress}" = domains;
 
         security.pki.certificateFiles = [ "${tls-certs}/ca.pem" ];
       };
