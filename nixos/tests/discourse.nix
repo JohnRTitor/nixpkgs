@@ -40,10 +40,10 @@ in
         certs.ca.cert
       ];
 
-      networking.extraHosts = ''
-        127.0.0.1 ${discourseDomain}
-        ${nodes.client.networking.primaryIPAddress} ${clientDomain}
-      '';
+      networking.hosts = {
+        "127.0.0.1" = [ "${discourseDomain}" ];
+        "${nodes.client.networking.primaryIPAddress}" = [ "${clientDomain}" ];
+      };
 
       services.postfix = {
         enableSubmission = true;
@@ -93,10 +93,10 @@ in
         certs.ca.cert
       ];
 
-      networking.extraHosts = ''
-        127.0.0.1 ${clientDomain}
-        ${nodes.discourse.networking.primaryIPAddress} ${discourseDomain}
-      '';
+      networking.hosts = {
+        "127.0.0.1" = [ "${clientDomain}" ];
+        "${nodes.discourse.networking.primaryIPAddress}" = [ "${discourseDomain}" ];
+      };
 
       services.dovecot2 = {
         enable = true;
