@@ -9,9 +9,9 @@ import ../../make-test-python.nix (
         cp key.pem cert.pem $out
       '';
 
-    hosts = ''
-      192.168.2.101 mastodon.local
-    '';
+    hosts = {
+      "192.168.2.101" = [ "mastodon.local" ];
+    };
 
   in
   {
@@ -38,7 +38,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
             firewall.allowedTCPPorts = [
               80
               443
@@ -86,7 +86,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
           };
 
           security = {
