@@ -38,9 +38,7 @@ in
       { nodes, pkgs, ... }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [ "example.com" ];
 
         imports = [ ./go-sendxmpp-listen.nix ];
       };
@@ -53,11 +51,11 @@ in
       }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-          ${nodes.server.networking.primaryIPAddress} conference.example.com
-          ${nodes.server.networking.primaryIPAddress} uploads.example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [
+          "example.com"
+          "conference.example.com"
+          "uploads.example.com"
+        ];
         environment.systemPackages = [
           (pkgs.callPackage ./xmpp-sendmessage.nix { connectTo = "example.com"; })
         ];
@@ -67,11 +65,11 @@ in
       { config, pkgs, ... }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${config.networking.primaryIPAddress} example.com
-          ${config.networking.primaryIPAddress} conference.example.com
-          ${config.networking.primaryIPAddress} uploads.example.com
-        '';
+        networking.hosts."${config.networking.primaryIPAddress}" = [
+          "example.com"
+          "conference.example.com"
+          "uploads.example.com"
+        ];
         networking.firewall.enable = false;
         environment.systemPackages = [
           (createUsers pkgs)
