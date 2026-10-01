@@ -30,9 +30,7 @@ runTest (
         {
           security.pki.certificateFiles = [ certs.ca.cert ];
 
-          networking.extraHosts = ''
-            ${nodes.stalwart.networking.primaryIPAddress} ${domain}
-          '';
+          networking.hosts."${nodes.stalwart.networking.primaryIPAddress}" = [ "${domain}" ];
 
           environment.etc."nextcloud/mail_smtppassword".text = "foobar";
 
