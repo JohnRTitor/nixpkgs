@@ -1,8 +1,8 @@
 { pkgs, ... }:
 let
-  extraHosts = ''
-    192.168.13.12 agenda.example.com
-  '';
+  hosts = {
+    "192.168.13.12" = [ "agenda.example.com" ];
+  };
 in
 {
   name = "gancio";
@@ -21,7 +21,7 @@ in
               }
             ];
           };
-          inherit extraHosts;
+          inherit hosts;
           firewall.allowedTCPPorts = [ 80 ];
         };
         environment.systemPackages = [ pkgs.gancio ];
@@ -59,7 +59,7 @@ in
               }
             ];
           };
-          inherit extraHosts;
+          inherit hosts;
         };
       };
   };
