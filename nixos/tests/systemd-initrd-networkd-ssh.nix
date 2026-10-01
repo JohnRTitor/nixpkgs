@@ -22,13 +22,13 @@
       };
 
     client =
-      { config, ... }:
+      { nodes, ... }:
       {
         environment.etc = {
           knownHosts = {
             text = lib.concatStrings [
               "server,"
-              "${toString (lib.head (lib.splitString " " (toString (lib.elemAt (lib.splitString "\n" config.networking.extraHosts) 2))))} "
+              "${nodes.server.networking.primaryIPAddress} "
               "${lib.readFile ./initrd-network-ssh/ssh_host_ed25519_key.pub}"
             ];
           };
