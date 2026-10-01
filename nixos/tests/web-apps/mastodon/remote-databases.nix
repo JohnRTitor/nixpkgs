@@ -9,9 +9,9 @@ import ../../make-test-python.nix (
         cp key.pem cert.pem $out
       '';
 
-    hosts = ''
-      192.168.2.103 mastodon.local
-    '';
+    hosts = {
+      "192.168.2.103" = [ "mastodon.local" ];
+    };
 
     postgresqlPassword = "thisisnotasecret";
     redisPassword = "thisisnotasecrettoo";
@@ -42,7 +42,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
             firewall.allowedTCPPorts = [
               config.services.redis.servers.mastodon.port
               config.services.postgresql.settings.port
@@ -87,7 +87,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
             firewall.allowedTCPPorts = [
               80
               443
@@ -139,7 +139,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
             firewall.allowedTCPPorts = [
               config.services.mastodon.webPort
               config.services.mastodon.sidekiqPort
@@ -192,7 +192,7 @@ import ../../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = hosts;
+            inherit hosts;
           };
 
           security = {
