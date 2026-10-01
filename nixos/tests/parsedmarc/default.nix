@@ -141,10 +141,10 @@ in
               certs.ca.cert
             ];
 
-            networking.extraHosts = ''
-              127.0.0.1 ${parsedmarcDomain}
-              ${nodes.mail.networking.primaryIPAddress} ${mailDomain}
-            '';
+            networking.hosts = {
+              "127.0.0.1" = [ "${parsedmarcDomain}" ];
+              "${nodes.mail.networking.primaryIPAddress}" = [ "${mailDomain}" ];
+            };
 
             services.parsedmarc = {
               enable = true;
@@ -168,10 +168,10 @@ in
           {
             imports = [ ../common/user-account.nix ];
 
-            networking.extraHosts = ''
-              127.0.0.1 ${mailDomain}
-              ${nodes.parsedmarc.networking.primaryIPAddress} ${parsedmarcDomain}
-            '';
+            networking.hosts = {
+              "127.0.0.1" = [ "${mailDomain}" ];
+              "${nodes.parsedmarc.networking.primaryIPAddress}" = [ "${parsedmarcDomain}" ];
+            };
 
             services.dovecot2 = {
               enable = true;
