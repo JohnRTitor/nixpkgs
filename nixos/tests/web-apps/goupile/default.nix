@@ -79,9 +79,7 @@ in
       # goupile tries to resolve it at runtime, resolve it instead of patching it out
       # as the dns resolution step serves a purpose, to force glibc to load NSS libraries
       # see server/goupile.cc and search for getaddrinfo or www.example.com
-      networking.extraHosts = ''
-        127.0.0.1 www.example.com
-      '';
+      networking.hosts."127.0.0.1" = [ "www.example.com" ];
 
       environment.systemPackages = [
         python
