@@ -1224,14 +1224,22 @@ in
           ) config.containers;
 
         # Generate /etc/hosts entries for the containers.
-        networking.extraHosts = concatStrings (
-          mapAttrsToList (
-            name: cfg:
-            optionalString (cfg.localAddress != null) ''
-              ${head (splitString "/" cfg.localAddress)} ${name}.containers
-            ''
-          ) config.containers
-        );
+        networking.hosts = foldl' (
+          hosts: name:
+          let
+            container = config.containers.${name};
+            ip = optionalString (container.localAddress != null) (
+              head (splitString "/" container.localAddress)
+            );
+          in
+          if ip == "" then
+            hosts
+          else
+            hosts
+            // {
+              ${ip} = (hosts.${ip} or [ ]) ++ [ "${name}.containers" ];
+            }
+        ) { } (attrNames config.containers);
 
         networking.dhcpcd.denyInterfaces = [
           "ve-*"
