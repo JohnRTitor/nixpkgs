@@ -7,9 +7,7 @@
   containers.pretalx =
     { config, ... }:
     {
-      networking.extraHosts = ''
-        127.0.0.1 talks.local
-      '';
+      networking.hosts."127.0.0.1" = [ "talks.local" ];
 
       services.pretalx = {
         enable = true;
