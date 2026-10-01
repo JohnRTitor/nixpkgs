@@ -83,9 +83,7 @@ import ../make-test-python.nix (
                 }
               ];
             };
-            extraHosts = ''
-              192.168.2.11 ${domain}
-            '';
+            hosts."192.168.2.11" = [ "${domain}" ];
             firewall.allowedTCPPorts = [ port ];
           };
 
@@ -138,9 +136,7 @@ import ../make-test-python.nix (
               }
             ];
           };
-          extraHosts = ''
-            192.168.2.11 ${domain}
-          '';
+          hosts."192.168.2.11" = [ "${domain}" ];
         };
 
         services.peertube-runner = {
