@@ -13,9 +13,7 @@ in
     {
       security.pki.certificateFiles = [ certs.ca.cert ];
 
-      networking.extraHosts = ''
-        127.0.0.1 ${domain}
-      '';
+      networking.hosts."127.0.0.1" = [ "${domain}" ];
 
       services.openbao = {
         enable = true;
