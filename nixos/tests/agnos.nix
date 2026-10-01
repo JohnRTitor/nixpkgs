@@ -78,9 +78,7 @@ let
           {
             imports = [ extraServerConfig ];
 
-            networking.extraHosts = ''
-              ${nodeIP nodes.acme} acme.test
-            '';
+            networking.hosts."${nodeIP nodes.acme}" = [ "acme.test" ];
             security.agnos = {
               enable = true;
               generateKeys.enable = true;
