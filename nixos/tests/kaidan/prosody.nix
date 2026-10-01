@@ -28,11 +28,14 @@ in
   # Make the self-signed certificates work
   security.pki.certificateFiles = [ "${cert}/cert.pem" ];
 
-  networking.extraHosts = ''
-    ${config.networking.primaryIPAddress} example.com
-    ${config.networking.primaryIPAddress} conference.example.com
-    ${config.networking.primaryIPAddress} uploads.example.com
-  '';
+  networking.hosts = {
+    "127.0.0.1" = [ "example.com" ];
+    "${config.networking.primaryIPAddress}" = [
+      "example.com"
+      "conference.example.com"
+      "uploads.example.com"
+    ];
+  };
 
   environment.systemPackages = [
     createUsers
@@ -54,6 +57,4 @@ in
       domain = "uploads.example.com";
     };
   };
-
-  networking.hosts."127.0.0.1" = [ "example.com" ];
 }
