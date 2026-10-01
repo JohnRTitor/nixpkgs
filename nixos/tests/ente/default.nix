@@ -45,9 +45,14 @@ in
     {
       security.pki.certificateFiles = [ certs.ca.cert ];
 
-      networking.extraHosts = ''
-        ${config.networking.primaryIPAddress} accounts.${domain} albums.${domain} api.${domain} cast.${domain} photos.${domain} s3.${domain}
-      '';
+      networking.hosts."${config.networking.primaryIPAddress}" = [
+        "accounts.${domain}"
+        "albums.${domain}"
+        "api.${domain}"
+        "cast.${domain}"
+        "photos.${domain}"
+        "s3.${domain}"
+      ];
 
       networking.firewall.allowedTCPPorts = [
         80
