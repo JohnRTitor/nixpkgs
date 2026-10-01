@@ -66,9 +66,7 @@ runTest (
 
           # The dummy certs are for acme.test, so we pretend that's the FQDN
           # of the garage VM.
-          networking.extraHosts = ''
-            ${nodes.garage.networking.primaryIPAddress} acme.test
-          '';
+          networking.hosts."${nodes.garage.networking.primaryIPAddress}" = [ "acme.test" ];
         };
 
       client =
@@ -81,9 +79,7 @@ runTest (
           security.pki.certificates = [
             (builtins.readFile ../common/acme/server/ca.cert.pem)
           ];
-          networking.extraHosts = ''
-            ${nodes.garage.networking.primaryIPAddress} acme.test
-          '';
+          networking.hosts."${nodes.garage.networking.primaryIPAddress}" = [ "acme.test" ];
         };
 
       garage =
@@ -121,9 +117,7 @@ runTest (
             };
           };
 
-          networking.extraHosts = ''
-            127.0.0.1 acme.test
-          '';
+          networking.hosts."127.0.0.1" = [ "acme.test" ];
 
           environment.systemPackages = [ pkgs.gawk ];
 
