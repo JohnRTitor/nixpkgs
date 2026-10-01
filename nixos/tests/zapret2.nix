@@ -126,9 +126,7 @@ in
         ];
       };
 
-      networking.extraHosts = ''
-        ${serverIP} acme.test
-      '';
+      networking.hosts."${serverIP}" = [ "acme.test" ];
     };
   };
 
