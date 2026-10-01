@@ -72,13 +72,15 @@ in
           };
         };
 
-        specialisation.update-hosts.configuration = {
-          networking.extraHosts =
-            let
-              testCfg = nodes.server.virtualisation.test;
-            in
-            lib.mkForce "192.168.2.${toString testCfg.nodeNumber} ${testCfg.nodeName}";
-        };
+        specialisation.update-hosts.configuration =
+          let
+            testCfg = nodes.server.virtualisation.test;
+          in
+          {
+            networking.hosts."192.168.2.${toString testCfg.nodeNumber}" = lib.mkForce [
+              testCfg.nodeName
+            ];
+          };
       };
   };
 
