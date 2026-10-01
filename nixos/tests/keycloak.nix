@@ -30,9 +30,7 @@ let
                 certs.ca.cert
               ];
 
-              networking.extraHosts = ''
-                127.0.0.1 ${certs.domain}
-              '';
+              networking.hosts."127.0.0.1" = [ "${certs.domain}" ];
 
               services.keycloak = {
                 enable = true;
