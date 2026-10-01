@@ -54,10 +54,17 @@ in
     networking.extraHosts = lib.mkOption {
       type = lib.types.lines;
       default = "";
-      example = "192.168.0.1 lanlocalhost";
+      example = lib.literalMD ''
+        Deprecated, use {option}`networking.hosts` instead.
+      '';
       description = ''
         Additional verbatim entries to be appended to {file}`/etc/hosts`.
-        For adding hosts from derivation results, use {option}`networking.hostFiles` instead.
+
+        !!! This option is deprecated and will be removed in a future release.
+        Use {option}`networking.hosts`, which supports mapping multiple
+        hostnames to the same IP address, or {option}`networking.hostFiles`
+        for verbatim entries. The latter is also the way to add hosts from
+        derivation results.
       '';
     };
 
@@ -164,11 +171,27 @@ in
         assertion = !localhostMultiple;
         message = ''
           `networking.hosts` maps "localhost" to something other than "127.0.0.1"
-          or "::1". This will break some applications. Please use
-          `networking.extraHosts` if you really want to add such a mapping.
+          or "::1". This will break some applications. If you really want to add
+          such a mapping, append it verbatim with {option}`networking.hostFiles`
+          instead.
         '';
       }
     ];
+
+    warnings = lib.optional (cfg.extraHosts != "") ''
+      The option `networking.extraHosts` is deprecated and will be removed in a future release.
+      Use `networking.hosts` instead, which additionally supports mapping multiple hostnames
+      to the same IP address. For example, this:
+
+          networking.extraHosts = "169.254.169.254 metadata.google.internal metadata";
+
+      becomes:
+
+          networking.hosts."169.254.169.254" = [ "metadata.google.internal" "metadata" ];
+
+      For verbatim entries or entries coming from derivation results, use
+      `networking.hostFiles` instead.
+    '';
 
     # These entries are required for "hostname -f" and to resolve both the
     # hostname and FQDN correctly:
@@ -194,7 +217,7 @@ in
         '';
         stringHosts =
           let
-            oneToString = set: ip: ip + " " + lib.concatStringsSep " " set.${ip} + "\n";
+            oneToString = set: ip: ip + " " + lib.concatStringsSep " " (lib.unique set.${ip}) + "\n";
             allToString = set: lib.concatMapStrings (oneToString set) (lib.attrNames set);
           in
           pkgs.writeText "string-hosts" (allToString (lib.filterAttrs (_: v: v != [ ]) cfg.hosts));
