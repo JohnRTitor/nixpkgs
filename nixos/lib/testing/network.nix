@@ -6,7 +6,7 @@ testModuleArgs@{
 let
   inherit (lib)
     attrNames
-    concatMapAttrsStringSep
+    concatMapAttrs
     concatMapStrings
     forEach
     head
@@ -67,11 +67,11 @@ let
         # Generate /etc/hosts including every remote's primary IP addresses
         # (whichever VLAN they may belong to) as well as all IP addresses from
         # VLANs that both the local machine and the remote machine share.
-        networking.extraHosts =
+        networking.hosts =
           let
             localVlans = config.virtualisation.vlans;
           in
-          concatMapAttrsStringSep "" (
+          concatMapAttrs (
             mName: remoteConfig:
             let
               remoteInterfaces = remoteConfig.networking.interfaces;
@@ -104,9 +104,9 @@ let
                 optionalString (
                   remoteConfig.networking.domain != null
                 ) "${remoteConfig.networking.hostName}.${remoteConfig.networking.domain} "
-                + "${remoteConfig.networking.hostName}\n";
+                + "${remoteConfig.networking.hostName}";
             in
-            builtins.concatStringsSep "" (map (ip: "${ip} ${hostnames}") allReachableIps)
+            listToAttrs (map (ip: nameValuePair ip [ hostnames ]) allReachableIps)
           ) testModuleArgs.config.allMachines;
       };
     in
