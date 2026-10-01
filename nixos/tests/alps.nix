@@ -21,9 +21,7 @@ in
         security.pki.certificateFiles = [
           certs.ca.cert
         ];
-        networking.extraHosts = ''
-          127.0.0.1 ${domain}
-        '';
+        networking.hosts."127.0.0.1" = [ "${domain}" ];
         networking.firewall.allowedTCPPorts = [
           25
           465
@@ -63,9 +61,7 @@ in
         security.pki.certificateFiles = [
           certs.ca.cert
         ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} ${domain}
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [ "${domain}" ];
         services.alps = {
           enable = true;
           settings = {
