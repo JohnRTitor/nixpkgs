@@ -18,9 +18,7 @@ in
       { nodes, pkgs, ... }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [ "example.com" ];
 
         imports = [ ./go-sendxmpp-listen.nix ];
       };
@@ -29,9 +27,7 @@ in
       { nodes, pkgs, ... }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [ "example.com" ];
 
         environment.systemPackages = [
           (pkgs.callPackage ./xmpp-sendmessage.nix {
@@ -44,10 +40,10 @@ in
       { config, pkgs, ... }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${config.networking.primaryIPAddress} example.com
-          ${config.networking.primaryIPAddress} matrix.example.com
-        '';
+        networking.hosts."${config.networking.primaryIPAddress}" = [
+          "example.com"
+          "matrix.example.com"
+        ];
 
         services.ejabberd = {
           enable = true;
