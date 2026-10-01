@@ -40,11 +40,11 @@ import ../make-test-python.nix {
       }:
       {
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-          ${nodes.server.networking.primaryIPAddress} conference.example.com
-          ${nodes.server.networking.primaryIPAddress} uploads.example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [
+          "example.com"
+          "conference.example.com"
+          "uploads.example.com"
+        ];
         environment.systemPackages = [
           (pkgs.callPackage ./xmpp-sendmessage.nix {
             connectTo = nodes.server.networking.primaryIPAddress;
@@ -63,11 +63,11 @@ import ../make-test-python.nix {
           })
         ];
         security.pki.certificateFiles = [ "${cert pkgs}/cert.pem" ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} example.com
-          ${nodes.server.networking.primaryIPAddress} conference.example.com
-          ${nodes.server.networking.primaryIPAddress} uploads.example.com
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [
+          "example.com"
+          "conference.example.com"
+          "uploads.example.com"
+        ];
         networking.firewall.enable = false;
         environment.systemPackages = [
           (createUsers pkgs)
