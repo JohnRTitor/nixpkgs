@@ -35,7 +35,7 @@ in
         };
       };
 
-      networking.extraHosts = "127.0.0.1 dashy.local";
+      networking.hosts."127.0.0.1" = [ "dashy.local" ];
 
       services.nginx.virtualHosts."${config.services.dashy.virtualHost.domain}".listen = [
         {
