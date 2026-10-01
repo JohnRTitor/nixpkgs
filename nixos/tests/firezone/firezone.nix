@@ -36,10 +36,10 @@ in
         #   }
         # ];
 
-        networking.extraHosts = ''
-          ${config.networking.primaryIPAddress} ${domain}
-          ${config.networking.primaryIPv6Address} ${domain}
-        '';
+        networking.hosts = {
+          "${config.networking.primaryIPAddress}" = [ "${domain}" ];
+          "${config.networking.primaryIPv6Address}" = [ "${domain}" ];
+        };
 
         networking.firewall.allowedTCPPorts = [
           80
@@ -97,10 +97,10 @@ in
       }:
       {
         security.pki.certificateFiles = [ certs.ca.cert ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} ${domain}
-          ${nodes.server.networking.primaryIPv6Address} ${domain}
-        '';
+        networking.hosts = {
+          "${nodes.server.networking.primaryIPAddress}" = [ "${domain}" ];
+          "${nodes.server.networking.primaryIPv6Address}" = [ "${domain}" ];
+        };
 
         services.firezone.relay = {
           enable = true;
@@ -212,11 +212,11 @@ in
         boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = "1";
 
         security.pki.certificateFiles = [ certs.ca.cert ];
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} ${domain}
-          ${nodes.server.networking.primaryIPv6Address} ${domain}
-          172.20.1.1 resource.example.com
-        '';
+        networking.hosts = {
+          "${nodes.server.networking.primaryIPAddress}" = [ "${domain}" ];
+          "${nodes.server.networking.primaryIPv6Address}" = [ "${domain}" ];
+          "172.20.1.1" = [ "resource.example.com" ];
+        };
 
         services.firezone.gateway = {
           enable = true;
@@ -236,10 +236,10 @@ in
       {
         security.pki.certificateFiles = [ certs.ca.cert ];
         networking.useNetworkd = true;
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} ${domain}
-          ${nodes.server.networking.primaryIPv6Address} ${domain}
-        '';
+        networking.hosts = {
+          "${nodes.server.networking.primaryIPAddress}" = [ "${domain}" ];
+          "${nodes.server.networking.primaryIPv6Address}" = [ "${domain}" ];
+        };
 
         services.firezone.headless-client = {
           enable = true;
