@@ -231,10 +231,10 @@ in
             c2s
             s2s
           ];
-          extraHosts = ''
-            127.0.0.1 ${movim.domain}
-            127.0.0.1 ${ejabberd.domain}
-          '';
+          hosts."127.0.0.1" = [
+            "${movim.domain}"
+            "${ejabberd.domain}"
+          ];
         };
       };
   };
