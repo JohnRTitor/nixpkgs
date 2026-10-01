@@ -36,9 +36,10 @@ let
         80
         8025
       ];
-      networking.extraHosts = ''
-        127.0.0.1 ${mailDomain} ${freescoutDomain}
-      '';
+      networking.hosts."127.0.0.1" = [
+        "${mailDomain}"
+        "${freescoutDomain}"
+      ];
 
       services.mailhog = {
         enable = true;
