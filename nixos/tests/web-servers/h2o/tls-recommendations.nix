@@ -66,7 +66,7 @@ let
         firewall.allowedTCPPorts = [
           config.services.h2o.hosts.${domain}.tls.port
         ];
-        extraHosts = "127.0.0.1 ${domain}";
+        hosts."127.0.0.1" = [ "${domain}" ];
       };
     };
 in
