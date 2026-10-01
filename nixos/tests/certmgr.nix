@@ -95,7 +95,10 @@ let
               cfssl.port
               certmgr.metricsPort
             ];
-            networking.extraHosts = "127.0.0.1 imp.example.org decl.example.org";
+            networking.hosts."127.0.0.1" = [
+              "imp.example.org"
+              "decl.example.org"
+            ];
 
             services.cfssl = {
               enable = true;
