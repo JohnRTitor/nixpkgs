@@ -106,10 +106,10 @@ in
               defaultTLSListenPort
             ];
           };
-          extraHosts = ''
-            ${config.networking.primaryIPAddress} ${domain.HTTP}
-            ${config.networking.primaryIPAddress} ${domain.TLS}
-          '';
+          hosts."${config.networking.primaryIPAddress}" = [
+            "${domain.HTTP}"
+            "${domain.TLS}"
+          ];
         };
       };
 
@@ -124,10 +124,10 @@ in
           (builtins.readFile ../../common/acme/server/ca.cert.pem)
         ];
 
-        networking.extraHosts = ''
-          ${nodes.server.networking.primaryIPAddress} ${domain.HTTP}
-          ${nodes.server.networking.primaryIPAddress} ${domain.TLS}
-        '';
+        networking.hosts."${nodes.server.networking.primaryIPAddress}" = [
+          "${domain.HTTP}"
+          "${domain.TLS}"
+        ];
       };
   };
 
