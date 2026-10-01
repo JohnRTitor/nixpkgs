@@ -32,9 +32,9 @@ let
           name = ${config.networking.hostName}
       '';
       networking = {
-        extraHosts = ''
-          ${nodes.seed.networking.primaryIPAddress} ${nodes.seed.services.radicle.httpd.nginx.serverName}
-        '';
+        hosts."${nodes.seed.networking.primaryIPAddress}" = [
+          "${nodes.seed.services.radicle.httpd.nginx.serverName}"
+        ];
       };
       security.pki.certificateFiles = [
         seed-tls-certs.ca.cert
