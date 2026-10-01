@@ -126,10 +126,10 @@
 
       services.resolved.settings.Resolve.DNSStubListener = false;
 
-      networking.extraHosts = ''
-        192.0.0.171 ipv4only.arpa
-        192.0.0.170 ipv4only.arpa
-      '';
+      networking.hosts = {
+        "192.0.0.171" = [ "ipv4only.arpa" ];
+        "192.0.0.170" = [ "ipv4only.arpa" ];
+      };
 
       services.coredns = {
         enable = true;
