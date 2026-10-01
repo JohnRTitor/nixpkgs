@@ -27,11 +27,11 @@ let
   # Common network setup
   baseNetwork = {
     # shared hosts file
-    extraHosts = lib.mkVMOverride ''
-      fd::a alice
-      fd::b bob
-      fd::e eve
-    '';
+    hosts = lib.mkVMOverride {
+      "fd::a" = [ "alice" ];
+      "fd::b" = [ "bob" ];
+      "fd::e" = [ "eve" ];
+    };
     # remove all automatic addresses
     useDHCP = false;
     interfaces.eth1.ipv4.addresses = lib.mkVMOverride [ ];
