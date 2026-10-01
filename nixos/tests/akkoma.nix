@@ -61,12 +61,18 @@ let
         "${tlsCertB}/cert.pem"
       ];
 
-      networking.extraHosts = ''
-        ${nodes.akkoma-a.networking.primaryIPAddress} akkoma-a.nixos.test media.akkoma-a.nixos.test
-        ${nodes.akkoma-b.networking.primaryIPAddress} akkoma-b.nixos.test media.akkoma-b.nixos.test
-        ${nodes.client-a.networking.primaryIPAddress} client-a.nixos.test
-        ${nodes.client-b.networking.primaryIPAddress} client-b.nixos.test
-      '';
+      networking.hosts = {
+        "${nodes.akkoma-a.networking.primaryIPAddress}" = [
+          "akkoma-a.nixos.test"
+          "media.akkoma-a.nixos.test"
+        ];
+        "${nodes.akkoma-b.networking.primaryIPAddress}" = [
+          "akkoma-b.nixos.test"
+          "media.akkoma-b.nixos.test"
+        ];
+        "${nodes.client-a.networking.primaryIPAddress}" = [ "client-a.nixos.test" ];
+        "${nodes.client-b.networking.primaryIPAddress}" = [ "client-b.nixos.test" ];
+      };
     };
 
   clientConfig =
