@@ -14,10 +14,10 @@ import ../make-test-python.nix (
       };
     };
 
-    hosts = ''
-      192.168.1.1 client.nfs.test
-      192.168.1.2 server.nfs.test
-    '';
+    hosts = {
+      "192.168.1.1" = [ "client.nfs.test" ];
+      "192.168.1.2" = [ "server.nfs.test" ];
+    };
 
     users = {
       users.alice = {
@@ -38,7 +38,7 @@ import ../make-test-python.nix (
         {
           inherit security users;
 
-          networking.extraHosts = hosts;
+          networking.hosts = hosts;
           networking.domain = "nfs.test";
           networking.hostName = "client";
 
@@ -60,7 +60,7 @@ import ../make-test-python.nix (
         {
           inherit security users;
 
-          networking.extraHosts = hosts;
+          networking.hosts = hosts;
           networking.domain = "nfs.test";
           networking.hostName = "server";
 
