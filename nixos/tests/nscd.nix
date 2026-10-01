@@ -18,10 +18,10 @@ in
     { pkgs, ... }:
     {
       imports = [ common/user-account.nix ];
-      networking.extraHosts = ''
-        2001:db8::1 somehost.test
-        192.0.2.1 somehost.test
-      '';
+      networking.hosts = {
+        "2001:db8::1" = [ "somehost.test" ];
+        "192.0.2.1" = [ "somehost.test" ];
+      };
 
       systemd.services.sockdump = {
         wantedBy = [ "multi-user.target" ];
