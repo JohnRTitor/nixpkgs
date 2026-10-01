@@ -10,10 +10,10 @@
       { pkgs, ... }:
       {
         networking = {
-          extraHosts = ''
-            127.0.0.1 default.test
-            127.0.0.1 sandbox.test
-          '';
+          hosts."127.0.0.1" = [
+            "default.test"
+            "sandbox.test"
+          ];
         };
         services.nginx = {
           enable = true;
