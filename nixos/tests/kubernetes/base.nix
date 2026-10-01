@@ -21,13 +21,17 @@ let
         filter (machineName: elem "master" machines.${machineName}.roles) (attrNames machines)
       );
       master = machines.${masterName};
-      extraHosts = ''
-        ${master.ip}  etcd.${domain}
-        ${master.ip}  api.${domain}
-        ${concatMapStringsSep "\n" (
-          machineName: "${machines.${machineName}.ip}  ${machineName}.${domain}"
-        ) (attrNames machines)}
-      '';
+      hosts = listToAttrs (
+        map (machineName: nameValuePair machines.${machineName}.ip [ "${machineName}.${domain}" ]) (
+          attrNames machines
+        )
+        ++ [
+          (nameValuePair master.ip [
+            "etcd.${domain}"
+            "api.${domain}"
+          ])
+        ]
+      );
       wrapKubectl =
         with pkgs;
         runCommand "wrap-kubectl" { nativeBuildInputs = [ makeWrapper ]; } ''
@@ -53,7 +57,7 @@ let
             virtualisation.memorySize = mkDefault 1536;
             virtualisation.diskSize = mkDefault 4096;
             networking = {
-              inherit domain extraHosts;
+              inherit domain hosts;
               primaryIPAddress = mkForce machine.ip;
 
               firewall = {
