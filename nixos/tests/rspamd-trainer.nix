@@ -18,9 +18,7 @@ in
           certs.ca.cert
         ];
 
-        networking.extraHosts = ''
-          127.0.0.1 ${domain}
-        '';
+        networking.hosts."127.0.0.1" = [ "${domain}" ];
 
         services.rspamd-trainer = {
           enable = true;
