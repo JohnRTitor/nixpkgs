@@ -1,8 +1,8 @@
 { pkgs, runTest }:
 let
-  hosts = ''
-    192.168.2.101 acme.test
-  '';
+  hosts = {
+    "192.168.2.101" = [ "acme.test" ];
+  };
 
 in
 builtins.listToAttrs (
@@ -26,7 +26,7 @@ builtins.listToAttrs (
                     }
                   ];
                 };
-                extraHosts = hosts;
+                inherit hosts;
                 firewall.allowedTCPPorts = [ 443 ];
                 firewall.allowedUDPPorts = [ 443 ];
               };
@@ -76,7 +76,7 @@ builtins.listToAttrs (
                     }
                   ];
                 };
-                extraHosts = hosts;
+                inherit hosts;
               };
 
               security.pki.certificates = [
