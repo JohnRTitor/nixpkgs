@@ -95,10 +95,10 @@ Strings
 
     ```nix
     {
-      networking.extraHosts =
+      environment.etc."issue".text =
         ''
-          127.0.0.2 other-localhost
-          10.0.0.1 server
+          Welcome to NixOS!
+          Documentation: https://nixos.org/
         '';
     }
     ```
