@@ -19,12 +19,12 @@ let
   # Common network setup
   baseNetwork = {
     # shared hosts file
-    networking.extraHosts = lib.mkVMOverride ''
-      203.0.113.1 router
-      203.0.113.2 server
-      2001:db8::2 inner
-      192.168.1.1 client
-    '';
+    networking.hosts = lib.mkVMOverride {
+      "203.0.113.1" = [ "router" ];
+      "203.0.113.2" = [ "server" ];
+      "2001:db8::2" = [ "inner" ];
+      "192.168.1.1" = [ "client" ];
+    };
     # open a port for testing
     networking.firewall.allowedUDPPorts = [ 1234 ];
   };
