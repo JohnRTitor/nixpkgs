@@ -61,9 +61,7 @@ import ../make-test-python.nix (
           security.pki.certificateFiles = [
             certs.ca.cert
           ];
-          networking.extraHosts = ''
-            ${nodes.server.networking.primaryIPAddress} ${domain}
-          '';
+          networking.hosts."${nodes.server.networking.primaryIPAddress}" = [ "${domain}" ];
           environment.systemPackages = [
             (pkgs.writers.writePython3Bin "send-testmail" { } ''
               import smtplib
