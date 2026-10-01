@@ -178,10 +178,10 @@ import ./make-test-python.nix (
         -out "$out/cert.pem" -noenc
     '';
 
-    hosts = nodes: ''
-      ${nodes.pleroma.networking.primaryIPAddress} pleroma.nixos.test
-      ${nodes.client.networking.primaryIPAddress} client.nixos.test
-    '';
+    hosts = nodes: {
+      "${nodes.pleroma.networking.primaryIPAddress}" = [ "pleroma.nixos.test" ];
+      "${nodes.client.networking.primaryIPAddress}" = [ "client.nixos.test" ];
+    };
   in
   {
     name = "pleroma";
@@ -195,7 +195,7 @@ import ./make-test-python.nix (
         }:
         {
           security.pki.certificateFiles = [ "${tls-cert}/cert.pem" ];
-          networking.extraHosts = hosts nodes;
+          networking.hosts = hosts nodes;
           environment.systemPackages = [
             pkgs.toot
             send-toot
@@ -210,7 +210,7 @@ import ./make-test-python.nix (
         }:
         {
           security.pki.certificateFiles = [ "${tls-cert}/cert.pem" ];
-          networking.extraHosts = hosts nodes;
+          networking.hosts = hosts nodes;
           networking.firewall.enable = false;
           environment.systemPackages = [
             provision-db
