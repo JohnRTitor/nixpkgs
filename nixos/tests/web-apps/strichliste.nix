@@ -10,9 +10,7 @@
   containers.server =
     { config, ... }:
     {
-      networking.extraHosts = ''
-        127.0.0.1 strichliste.local
-      '';
+      networking.hosts."127.0.0.1" = [ "strichliste.local" ];
 
       environment.systemPackages = with pkgs; [ httpie ];
 
