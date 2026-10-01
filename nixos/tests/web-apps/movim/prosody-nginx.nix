@@ -76,10 +76,10 @@ in
           '';
         };
 
-        networking.extraHosts = ''
-          127.0.0.1 ${movim.domain}
-          127.0.0.1 ${prosody.domain}
-        '';
+        networking.hosts."127.0.0.1" = [
+          "${movim.domain}"
+          "${prosody.domain}"
+        ];
       };
   };
 
