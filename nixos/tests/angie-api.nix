@@ -1,10 +1,12 @@
 { lib, pkgs, ... }:
 let
-  hosts = ''
-    192.168.2.101 example.com
-    192.168.2.101 api.example.com
-    192.168.2.101 backend.example.com
-  '';
+  hosts = {
+    "192.168.2.101" = [
+      "example.com"
+      "api.example.com"
+      "backend.example.com"
+    ];
+  };
 
 in
 {
@@ -24,7 +26,7 @@ in
               }
             ];
           };
-          extraHosts = hosts;
+          inherit hosts;
           firewall.allowedTCPPorts = [ 80 ];
         };
 
@@ -120,7 +122,7 @@ in
               }
             ];
           };
-          extraHosts = hosts;
+          inherit hosts;
         };
       };
   };
