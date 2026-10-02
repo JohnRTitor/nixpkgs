@@ -1,148 +1,277 @@
 {
   lib,
-  stdenvNoCC,
-  stdenv,
-  fetchurl,
-  autoPatchelfHook,
-  _7zz,
-  zstd,
-  alsa-lib,
-  curl,
+  rustPlatform,
+  fetchFromGitHub,
+  cmake,
+  pkg-config,
+  protobuf,
   fontconfig,
-  libglvnd,
-  libxkbcommon,
-  vulkan-loader,
-  wayland,
-  xdg-utils,
-  libxi,
-  libxcursor,
-  libx11,
-  libxcb,
-  xz, # liblzma
+  freetype,
+  openssl,
+  sqlite,
   zlib,
+  zstd,
+  glib,
+  alsa-lib,
+  libxkbcommon,
+  wayland,
+  libxcb,
+  libx11,
+  libXext,
+  libXi,
+  libXcursor,
+  libXrandr,
+  libGL,
+  vulkan-loader,
+  apple-sdk_15,
+  darwin,
+  libicns,
   makeWrapper,
+  stdenv,
   waylandSupport ? false,
 }:
 
 let
+  inherit (stdenv.hostPlatform) isDarwin isLinux;
+
+  # Some build scripts read files outside their crate directories.
+  # Fetch the full upstream repos so postPatch can add those files to the
+  # vendored crates.
+  warpProtoApisSrc = fetchFromGitHub {
+    owner = "warpdotdev";
+    repo = "warp-proto-apis";
+    rev = "3dd0cd81eae83b4ce09c7805c8ef12599798aa26";
+    hash = "sha256-qN7dw/EH0ftbpDsAmyNmvgYb8FWGRRig4AYHQqgxByg=";
+  };
+  warpWorkflowsSrc = fetchFromGitHub {
+    owner = "warpdotdev";
+    repo = "workflows";
+    rev = "793a98ddda6ef19682aed66364faebd2829f0e01";
+    hash =
+      if isDarwin then
+        "sha256-yRTtgiNpYjpQWHhqGSm9qP7zUtQhuxZfee2ThWRVR/A="
+      else
+        "sha256-ICgkxlUUIfyhr0agZEk3KtGHX0uNRlRCKtz0iF2jd7o=";
+  };
+
+  toPlist = lib.generators.toPlist { escape = true; };
+in
+rustPlatform.buildRustPackage (finalAttrs: {
   pname = "warp-terminal";
-  versions = lib.importJSON ./versions.json;
+  version = "0.2026.05.11.09.24.dev_00";
+
+  src = fetchFromGitHub {
+    owner = "warpdotdev";
+    repo = "warp";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-65JDbizveKUgM7ChwRzinY2i5RDraMvxCLeLO5jRNTA=";
+    fetchLFS = true;
+  };
+
+  # cargoHash is not guaranteed to be platform-independent: it is the
+  # fixed-output hash of the *vendor-staging* derivation, which downloads every
+  # git dependency with a host-built `nix-prefetch-git` rather than using
+  # per-crate fetch derivations. Warp has ~15 git dependencies, and the
+  # resulting checkouts differ between Linux and Darwin, so the hash has to be
+  # split per platform. See the same split for warpWorkflowsSrc above.
+  cargoHash =
+    if isDarwin then
+      "sha256-OMiZzZ3bYHOBGqrE25nod6GkjDC1A127rZiUQgQbxhs="
+    else
+      "sha256-79r30foDxSmd9oPk//8xrp0z20QXIvDrRmL99HxO0jE=";
+
+  # cargo-auditable can wedge while compiling Warp's main crate.
+  auditable = false;
+
   passthru.updateScript = ./update.sh;
 
-  linux_arch = if stdenv.hostPlatform.system == "x86_64-linux" then "x86_64" else "aarch64";
+  postPatch = ''
+    # Upstream's rustflags include a macOS linker flag and a nightly-only symbol
+    # mangling setting.
+    rm .cargo/config.toml
 
-  linux = stdenv.mkDerivation (finalAttrs: {
-    inherit pname meta passthru;
-    inherit (versions."linux_${linux_arch}") version;
-    src = fetchurl {
-      inherit (versions."linux_${linux_arch}") hash;
-      url = "https://releases.warp.dev/stable/v${finalAttrs.version}/warp-terminal-v${finalAttrs.version}-1-${linux_arch}.pkg.tar.zst";
-    };
+    # This build script expects the proto files above the crate directory.
+    warpMultiAgentApiDir=$(find "$cargoDepsCopy" -type d -name 'warp_multi_agent_api-0.0.0' -print -quit)
+    cp ${warpProtoApisSrc}/apis/multi_agent/v1/*.proto "$warpMultiAgentApiDir/"
+    substituteInPlace "$warpMultiAgentApiDir/build.rs" \
+      --replace-fail \
+        'manifest_dir.parent().unwrap().parent().unwrap()' \
+        'manifest_dir.as_path()'
 
-    sourceRoot = ".";
+    # This build script expects ../specs from the upstream repo layout.
+    warpWorkflowsDir=$(find "$cargoDepsCopy" -type d -name 'warp-workflows-0.1.0' -print -quit)
+    cp -r ${warpWorkflowsSrc}/specs "$warpWorkflowsDir/specs"
+    substituteInPlace "$warpWorkflowsDir/build.rs" \
+      --replace-fail '../specs' 'specs'
+  ''
+  + lib.optionalString isDarwin ''
+    # Avoid the upstream universal build flags.
+    substituteInPlace app/DockTilePlugin/Makefile \
+      --replace-fail '-arch arm64 -arch x86_64' '-arch ${stdenv.hostPlatform.darwinArch}'
 
-    postPatch = ''
-      substituteInPlace usr/bin/warp-terminal \
-        --replace-fail /opt/ $out/opt/
-    '';
+    # Nix cannot provide Apple's Metal compiler. Use the checked-in metallib.
+    install -Dm644 ${./shaders.metallib} crates/warpui/shaders.metallib
+    patch -p1 < ${./patches/0001-warpui-use-prebuilt-metallib.patch}
+  '';
 
-    nativeBuildInputs = [
-      autoPatchelfHook
-      zstd
-      makeWrapper
-    ];
+  nativeBuildInputs = [
+    cmake
+    pkg-config
+    protobuf
+    rustPlatform.bindgenHook
+  ]
+  ++ lib.optionals isDarwin [
+    darwin.autoSignDarwinBinariesHook
+    libicns
+    makeWrapper
+  ];
 
-    buildInputs = [
-      alsa-lib # libasound.so.2
-      curl
-      fontconfig
-      (lib.getLib stdenv.cc.cc) # libstdc++.so libgcc_s.so
-      zlib
-      xz
-    ];
+  dontUseCmakeConfigure = true;
 
-    runtimeDependencies = [
-      libglvnd # for libegl
-      libxkbcommon
-      stdenv.cc.libc
-      vulkan-loader
-      xdg-utils
-      libx11
-      libxcb
-      libxcursor
-      libxi
-    ]
-    ++ lib.optionals waylandSupport [ wayland ];
+  buildInputs = [
+    fontconfig
+    freetype
+    openssl
+    sqlite
+    zlib
+    zstd
+  ]
+  ++ lib.optionals isLinux [
+    glib
+    alsa-lib
+    libxkbcommon
+    wayland
+    libxcb
+    libx11
+    libXext
+    libXi
+    libXcursor
+    libXrandr
+  ]
+  ++ lib.optionals isDarwin [
+    apple-sdk_15
+  ];
 
-    installPhase = ''
-      runHook preInstall
+  cargoBuildFlags = [
+    "--bin"
+    "warp-oss"
+  ];
 
-      mkdir $out
-      cp -r opt usr/* $out
+  buildFeatures = [
+    "release_bundle"
+    "gui"
+    "nld_improvements"
+  ];
 
-    ''
-    + lib.optionalString waylandSupport ''
-      wrapProgram $out/bin/warp-terminal --set WARP_ENABLE_WAYLAND 1
-    ''
-    + ''
-      runHook postInstall
-    '';
+  doCheck = false;
 
-    postFixup = ''
-      # Link missing libfontconfig to fix font discovery
-      # https://github.com/warpdotdev/Warp/issues/5793
-      patchelf \
-        --add-needed libfontconfig.so.1 \
-        $out/opt/warpdotdev/warp-terminal/warp
-    '';
-  });
+  env = {
+    OPENSSL_NO_VENDOR = true;
+    LIBSQLITE3_SYS_USE_PKG_CONFIG = true;
+    ZSTD_SYS_USE_PKG_CONFIG = true;
+  }
+  // lib.optionalAttrs isDarwin {
+    # app/build.rs expects this on macOS.
+    MACOSX_DEPLOYMENT_TARGET = "10.14";
+  };
 
-  darwin = stdenvNoCC.mkDerivation (finalAttrs: {
-    inherit pname meta passthru;
-    inherit (versions.darwin) version;
-    src = fetchurl {
-      inherit (versions.darwin) hash;
-      url = "https://releases.warp.dev/stable/v${finalAttrs.version}/Warp.dmg";
-    };
+  installPhase =
+    if isDarwin then
+      ''
+        runHook preInstall
 
-    sourceRoot = ".";
+        binary="target/${stdenv.hostPlatform.rust.cargoShortTarget}/release/warp-oss"
 
-    # Warp.dmg is APFS formatted, which is unsupported by undmg
-    nativeBuildInputs = [ _7zz ];
+        # app/build.rs does not account for --target when placing the plugin.
+        plugin=$(find target -type d -name 'WarpDockTilePlugin.docktileplugin' -print -quit)
+        if [ -z "$plugin" ]; then
+          echo "ERROR: WarpDockTilePlugin.docktileplugin not produced by the build" >&2
+          exit 1
+        fi
 
-    # Warp.app ships signed and notarized. Rewriting the shebang of
-    # Contents/Resources/bin/oz breaks the code signature seal, so macOS
-    # refuses to launch the app. /bin/bash always exists on darwin anyway.
-    dontPatchShebangs = true;
+        app="$out/Applications/WarpOss.app"
+        mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$app/Contents/PlugIns"
 
-    installPhase = ''
-      runHook preInstall
+        install -m 755 "$binary" "$app/Contents/MacOS/warp-oss"
+        cp -R "$plugin" "$app/Contents/PlugIns/"
 
-      mkdir -p $out/Applications
-      cp -r *.app $out/Applications
+        iconset=$(mktemp -d)
+        cp app/channels/oss/icon/no-padding/512x512.png "$iconset/AppIcon_512x512.png"
+        png2icns "$app/Contents/Resources/AppIcon.icns" "$iconset/AppIcon_512x512.png"
 
-      runHook postInstall
-    '';
-  });
+        printf '%s' ${
+          lib.escapeShellArg (toPlist (import ./info-plist.nix { inherit (finalAttrs) version; }))
+        } > "$app/Contents/Info.plist"
+
+        mkdir -p "$out/bin"
+        makeWrapper "$app/Contents/MacOS/warp-oss" "$out/bin/warp-terminal-oss"
+        ln -s warp-terminal-oss "$out/bin/warp-terminal"
+
+        runHook postInstall
+      ''
+    else
+      ''
+        runHook preInstall
+
+        install -Dm755 \
+          target/${stdenv.hostPlatform.rust.cargoShortTarget}/release/warp-oss \
+          $out/bin/warp-terminal-oss
+        ln -s warp-terminal-oss $out/bin/warp-terminal
+
+        install -Dm644 \
+          app/channels/oss/dev.warp.WarpOss.desktop \
+          $out/share/applications/dev.warp.WarpOss.desktop
+
+        install -Dm644 \
+          app/channels/oss/icon/no-padding/512x512.png \
+          $out/share/icons/hicolor/512x512/apps/dev.warp.WarpOss.png
+
+      ''
+      + lib.optionalString waylandSupport ''
+        wrapProgram $out/bin/warp-terminal --set WARP_ENABLE_WAYLAND 1
+      ''
+      + ''
+
+        runHook postInstall
+      '';
+
+  postFixup = lib.optionalString isLinux ''
+    patchelf $out/bin/warp-terminal-oss \
+      --add-rpath ${
+        lib.makeLibraryPath [
+          # Loaded with dlopen, so patchelf cannot discover them from NEEDED.
+          libGL
+          libxkbcommon
+          vulkan-loader
+          wayland
+        ]
+      }
+  '';
 
   meta = {
-    description = "Rust-based terminal";
-    homepage = "https://www.warp.dev";
+    description = "Open-source build of the Warp terminal (warp-oss channel)";
+    homepage = "https://github.com/warpdotdev/warp";
     license = with lib.licenses; [
-      mit
       agpl3Only
+      mit
     ];
-    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+    sourceProvenance = with lib.sourceTypes; [
+      fromSource
+      # Prebuilt Darwin Metal shader library, see patches/0001-warpui-use-prebuilt-metallib.patch.
+      binaryNativeCode
+    ];
+    mainProgram = "warp-terminal";
     maintainers = with lib.maintainers; [
       _4evy
+      imadnyc
       johnrtitor
       logger
     ];
-    platforms = lib.platforms.darwin ++ [
+    platforms = [
       "x86_64-linux"
       "aarch64-linux"
+      "x86_64-darwin"
+      "aarch64-darwin"
     ];
   };
-
-in
-if stdenvNoCC.hostPlatform.isDarwin then darwin else linux
+})

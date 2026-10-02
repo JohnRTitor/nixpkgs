@@ -1,80 +1,61 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p cacert curl jq nix moreutils --pure
+#!nix-shell -i bash -p nix-prefetch-git curl --pure
 #shellcheck shell=bash
 set -eu -o pipefail
 
 cd "$(dirname "$0")"
 nixpkgs=../../../../.
 
-err() {
-    echo "$*" >&2
+# Warp tags the open-source "warp-oss" channel separately from the stable
+# channel that ships the prebuilt binaries on releases.warp.dev. Only tags with
+# a channel suffix (stable_XX / preview_XX / dev_XX) are buildable from source,
+# so pick the newest of those.
+get_latest_version() {
+    curl -sS 'https://api.github.com/repos/warpdotdev/Warp/tags?per_page=100' \
+        | grep -o '"name": *"v[^"]*"' \
+        | sed 's/.*"v//; s/"$//' \
+        | grep -E '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.(stable|preview|dev)_[0-9]+$' \
+        | sort -r \
+        | head -n 1
+}
+
+old_version=$(sed -n 's/^  version = "\(.*\)";$/\1/p' ./package.nix | head -n 1)
+old_hash=$(sed -n '/owner = "warpdotdev";/{n;n;s/.*hash = "\(.*\)";/\1/p}' ./package.nix | head -n 1)
+
+version=$(get_latest_version)
+if [[ -z $version ]]; then
+    echo "ERROR: could not determine the latest warp-oss tag" >&2
     exit 1
-}
+fi
 
-json_get() {
-    jq -r "$1" < "./versions.json"
-}
+echo "old version: $old_version"
+echo "new version: $version"
 
-json_set() {
-    jq --arg x "$2" "$1 = \$x" < "./versions.json" | sponge "./versions.json"
-}
+if [[ $version == "$old_version" ]]; then
+    echo "warp-terminal is already up to date at $version"
+    exit 0
+fi
 
-resolve_url() {
-    local pkg sfx url
-    local -i i max_redirects
-    case "$1" in
-        darwin)
-            pkg=macos
-            sfx=dmg
-            ;;
-        linux_x86_64)
-            pkg=pacman
-            sfx=pkg.tar.zst
-            ;;
-        linux_aarch64)
-            pkg=pacman_arm64
-            sfx=pkg.tar.zst
-            ;;
-        *)
-            err "Unexpected download type: $1"
-            ;;
-    esac
-    url="https://app.warp.dev/download?package=${pkg}"
-    ((max_redirects = 15))
-    for ((i = 0; i < max_redirects; i++)); do
-        url=$(curl -s -o /dev/null -w '%{redirect_url}' "${url}")
-        [[ ${url} != *.${sfx} ]] || break
-    done
-    ((i < max_redirects)) || { err "too many redirects"; }
-    echo "${url}"
-}
+substituteInPlace ./package.nix \
+    --replace-fail "version = \"$old_version\"" "version = \"$version\""
 
-get_version() {
-    echo "$1" | grep -oP -m 1 '(?<=/v)[\d.\w]+(?=/)'
-}
+hash=$(nix-prefetch-git --quiet --fetch-submodules \
+    "https://github.com/warpdotdev/Warp" "refs/tags/v$version" \
+    | nix hash to-sri --stdin)
+substituteInPlace ./package.nix --replace-fail "$old_hash" "$hash"
 
-# nix-prefetch-url seems to be uncompressing the archive then taking the hash
-# so just get the hash from fetchurl
-sri_get() {
-    local output sri
-    output=$(nix-build  --expr \
-        "with import $nixpkgs {};
-         fetchurl {
-           url = \"$1\";
-         }" 2>&1 || true)
-    sri=$(echo "$output" | awk '/^\s+got:\s+/{ print $2 }')
-    [[ -z "$sri" ]] && err "$output"
-    echo "$sri"
-}
+cat <<EOF
 
+Updated warp-terminal to $version.
 
-for sys in darwin linux_x86_64 linux_aarch64; do
-    echo ${sys}
-    url=$(resolve_url ${sys})
-    version=$(get_version "${url}")
-    if [[ ${version} != "$(json_get ".${sys}.version")" ]]; then
-        sri=$(sri_get "${url}")
-        json_set ".${sys}.version" "${version}"
-        json_set ".${sys}.hash" "${sri}"
-    fi
-done
+Two things still need attention before this will build:
+
+  1. Run './scripts/build-metallib.py' on macOS to regenerate shaders.metallib.
+     Apple's Metal compiler is not available under Nix, so the Metal shader
+     library has to be prebuilt and committed.
+  2. Set cargoHash = ""; in package.nix, build, and copy the reported
+     'got: sha256-...' value back into cargoHash.
+  3. Check that the warp-proto-apis and workflows revs in package.nix are still
+     the ones referenced by the new source tree, and refresh their hashes if
+     they changed.
+EOF
