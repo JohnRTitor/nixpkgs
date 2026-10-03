@@ -77,6 +77,7 @@
   makeDesktopItem,
   tiling_wm, # if we are using a tiling wm, need to set _JAVA_AWT_WM_NONREPARENTING in wrapper
   androidenv,
+  jetbrains,
 
   forceWayland ? false,
 }:
@@ -211,6 +212,14 @@ let
       }"
     '';
     meta.mainProgram = "studio";
+
+    # The IDE payload lives at the root of `$out`, not in a `$out/<mainProgram>`
+    # subdirectory like the IDEs built by `jetbrains.mkJetBrainsProduct` do.
+    passthru.pluginsRootDir = ".";
+    # The payload ships prebuilt binaries that target Android rather than the
+    # host (Android system libraries such as liblog.so/libandroid.so), so it
+    # must not be run through patchelf.
+    passthru.pluginsUseAutoPatchelf = false;
   };
 
   desktopItem = makeDesktopItem {
@@ -247,6 +256,7 @@ let
     {
       androidStudio,
       androidSdk ? null,
+      plugins ? [ ],
     }:
     runCommand "${pname}-${version}"
       {
@@ -294,13 +304,29 @@ let
         allowSubstitutes = false;
         passthru =
           let
-            withSdk = androidSdk: mkAndroidStudioWrapper { inherit androidStudio androidSdk; };
+            withSdk =
+              androidSdk:
+              mkAndroidStudioWrapper {
+                inherit androidStudio androidSdk plugins;
+              };
           in
           {
             unwrapped = androidStudio;
             full = withSdk androidenv.androidPkgs.androidsdk;
             inherit withSdk;
             sdk = androidSdk;
+            inherit plugins;
+            # `jetbrains.plugins.addPlugins` cannot copy this wrapper and patch
+            # the result, because the wrapper merely delegates to `androidStudio`
+            # in another store path. Build a wrapper around a payload that has
+            # the plugins linked in instead.
+            addPlugins =
+              plugins:
+              mkAndroidStudioWrapper {
+                androidStudio = jetbrains.plugins.addPlugins androidStudio plugins;
+                inherit androidSdk;
+                inherit plugins;
+              };
             updateScript = [
               ./update.sh
               "${channel}"
