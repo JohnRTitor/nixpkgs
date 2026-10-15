@@ -6,14 +6,29 @@
   undmg,
   autoPatchelfHook,
   alsa-lib,
+  at-spi2-core,
+  atk,
+  cairo,
+  cups,
+  dbus,
   fontconfig,
-  libgbm,
+  glib,
+  libdrm,
+  libglvnd,
+  libxkbcommon,
+  mesa,
   ncurses5,
+  nspr,
+  nss,
+  pango,
+  udev,
   libxxf86vm,
   libxtst,
   libxrender,
   libxrandr,
   libxi,
+  libxcomposite,
+  libxdamage,
   libxft,
   libxext,
   libxcursor,
@@ -22,16 +37,16 @@
 
 let
   pname = "scilab-bin";
-  version = "2025.0.0";
+  version = "2026.1.0";
 
   srcs = {
     aarch64-darwin = fetchurl {
       url = "https://www.scilab.org/download/${version}/scilab-${version}-arm64.dmg";
-      hash = "sha256-hQFETzQiguqiVKBuIrce62eYEJ066B1lHN0IejNUaPQ=";
+      hash = "sha256-qG5osaeUiPEkUHu8q4lr+zhkxhpbHOlxVa1dSYRGOLc=";
     };
     x86_64-linux = fetchurl {
       url = "https://www.scilab.org/download/${version}/scilab-${version}.bin.x86_64-linux-gnu.tar.xz";
-      hash = "sha256-905HpjpNWnupJ7/fl0Xj7ePDpeMVi02OnEyIeawNdxw=";
+      hash = "sha256-lncn1r5QfxO1Kss2jj/UAfCr7MKfLJIAlMs6maBAvck=";
     };
   };
   src =
@@ -91,12 +106,27 @@ let
 
     buildInputs = [
       alsa-lib
+      at-spi2-core
+      atk
+      cairo
+      cups
+      dbus
       fontconfig
-      libgbm
+      glib
+      libdrm
+      libglvnd
+      libxkbcommon
+      mesa
       ncurses5
+      nspr
+      nss
+      pango
       stdenv.cc.cc
+      udev
       libx11
       libxcursor
+      libxcomposite
+      libxdamage
       libxext
       libxft
       libxi
