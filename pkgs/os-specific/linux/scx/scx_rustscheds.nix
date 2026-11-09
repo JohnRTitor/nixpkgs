@@ -6,6 +6,7 @@
   pkg-config,
   installShellFiles,
   elfutils,
+  libbpf,
   zlib,
   zstd,
   fetchFromGitHub,
@@ -37,6 +38,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   buildInputs = [
     elfutils
+    libbpf
     zlib
     zstd
     libseccomp
@@ -45,6 +47,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   env = {
     BPF_CLANG = lib.getExe llvmPackages_22.clang;
+    LIBBPF_SYS_LIBRARY_PATH = "${libbpf}/lib";
+    LIBBPF_SYS_INCLUDE_PATH = "${libbpf}/include";
     RUSTFLAGS = lib.concatStringsSep " " [
       "-C relocation-model=pic"
       "-C link-args=-lelf"
